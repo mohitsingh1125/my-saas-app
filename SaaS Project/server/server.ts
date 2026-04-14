@@ -12,7 +12,7 @@ import projectRouter from "./routes/projectRoutes.js";
 
 const app = express();
 
-const PORT = process.env.Port || 5001;
+const PORT = process.env.PORT || 10000;
 
 // Middleware
 app.use(cors())
@@ -26,17 +26,11 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Server is Live!");
 });
 
-app.get("/debug-sentry", function mainHandler(req, res) {
-  throw new Error("My first Sentry error!");
-});
 app.use('/api/user', userRouter)
 app.use('/api/project', projectRouter)
 
-
-// The error handler must be registered before any other error middleware and after all controllers
 Sentry.setupExpressErrorHandler(app);
 
-
 app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
