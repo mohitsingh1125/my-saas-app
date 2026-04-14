@@ -10,7 +10,7 @@ export const getUserCredits = async (req, res) => {
         const user = await prisma.user.findUnique({
             where: { id: userId }
         });
-        res.json({ credits: user?.credits });
+        res.json({ credits: user?.credits, plan: user?.plan || "free" });
     }
     catch (error) {
         Sentry.captureException(error);

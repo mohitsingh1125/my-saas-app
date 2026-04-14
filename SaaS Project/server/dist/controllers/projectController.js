@@ -410,7 +410,7 @@ function getLightXOutputDimensions(aspectRatio) {
 }
 function getFixedLightXImageUrl(publicId, aspectRatio) {
     const { width, height } = getLightXOutputDimensions(aspectRatio);
-    return cloudinary.url(publicId, {
+    return cloudinary.url(`${publicId}.png`, {
         secure: true,
         transformation: [
             {
@@ -469,7 +469,7 @@ export const createDirectVideo = async (req, res) => {
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized" });
         }
-        const { name = "New Project", aspectRatio, userPrompt, productName, productDescription, stylePreset, adAngle, targetLength = 5, skipMagicHour, } = req.body;
+        const { name = "New Project", aspectRatio, userPrompt, productName, productDescription, stylePreset, adAngle, targetLength = 5, resolution = "480p", skipMagicHour, } = req.body;
         const files = req.files;
         const productFile = files?.productImage?.[0];
         const modelFile = files?.modelImage?.[0];
@@ -483,9 +483,34 @@ export const createDirectVideo = async (req, res) => {
         const user = await prisma.user.findUnique({
             where: { id: userId },
         });
-        // Validating 10 credits for the full LightX + Magic Hour pipeline
-        if (!user || user.credits < 10) {
-            return res.status(401).json({ message: "Insufficient credits" });
+        if (!user) {
+            return res.status(401).json({ message: "User not found" });
+        }
+        const duration = parseInt(String(targetLength), 10) || 5;
+        const plan = user.plan || "free";
+        // Validate Tiers
+        if (duration >= 20 && plan === "free") {
+            return res.status(403).json({ message: "20s+ duration requires Pro or Premium plan" });
+        }
+        if (duration >= 30 && plan === "pro") {
+            return res.status(403).json({ message: "30s duration requires Premium plan" });
+        }
+        if (resolution === "720p" && plan === "free") {
+            return res.status(403).json({ message: "720p resolution requires Pro or Premium plan" });
+        }
+        if (resolution === "1080p" && (plan === "free" || plan === "pro")) {
+            return res.status(403).json({ message: "1080p resolution requires Premium plan" });
+        }
+        // Determine Cost
+        let creditCost = 10;
+        if (duration === 10)
+            creditCost = 20;
+        if (duration >= 20)
+            creditCost = 40;
+        if (duration >= 30)
+            creditCost = 50;
+        if (user.credits < creditCost) {
+            return res.status(401).json({ message: `Insufficient credits. This requires ${creditCost} credits.` });
         }
         const resolvedUserPrompt = normalizePromptText(userPrompt) ||
             buildPromptFromDescription({
@@ -660,10 +685,8 @@ export const createDirectVideo = async (req, res) => {
                     },
                     name: `Project ${project.id}`,
                     end_seconds: Math.max(1, parseInt(String(targetLength), 10) || 5),
-                    // ltx-2 matches your UI screenshot; swap if you want a different model
                     model: "ltx-2",
-                    // Avoid plan errors (e.g. 720p not available)
-                    resolution: "480p",
+                    resolution: resolution || "480p",
                 };
                 // MagicHour prompt - only send if user provided one (no defaults).
                 if (magicHourPrompt) {
@@ -709,7 +732,7 @@ export const createDirectVideo = async (req, res) => {
                     // Deduct credits only after success
                     await prisma.user.update({
                         where: { id: userId },
-                        data: { credits: { decrement: 10 } },
+                        data: { credits: { decrement: creditCost } },
                     });
                     console.log(`[Project ${project.id}] ✅ Pipeline complete!`);
                 }

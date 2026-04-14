@@ -16,28 +16,28 @@
 import * as runtime from "@prisma/client/runtime/index-browser";
 export const Decimal = runtime.Decimal;
 export const NullTypes = {
-    DbNull: runtime.NullTypes.DbNull,
-    JsonNull: runtime.NullTypes.JsonNull,
-    AnyNull: runtime.NullTypes.AnyNull,
+    DbNull: runtime.objectEnumValues.classes.DbNull,
+    JsonNull: runtime.objectEnumValues.classes.JsonNull,
+    AnyNull: runtime.objectEnumValues.classes.AnyNull,
 };
 /**
  * Helper for filtering JSON entries that have `null` on the database (empty on the db)
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const DbNull = runtime.DbNull;
+export const DbNull = runtime.objectEnumValues.instances.DbNull;
 /**
  * Helper for filtering JSON entries that have JSON `null` values (not empty on the db)
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const JsonNull = runtime.JsonNull;
+export const JsonNull = runtime.objectEnumValues.instances.JsonNull;
 /**
  * Helper for filtering JSON entries that are `Prisma.DbNull` or `Prisma.JsonNull`
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const AnyNull = runtime.AnyNull;
+export const AnyNull = runtime.objectEnumValues.instances.AnyNull;
 export const ModelName = {
     User: 'User',
     Project: 'Project'
@@ -57,6 +57,7 @@ export const UserScalarFieldEnum = {
     name: 'name',
     image: 'image',
     credits: 'credits',
+    plan: 'plan',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

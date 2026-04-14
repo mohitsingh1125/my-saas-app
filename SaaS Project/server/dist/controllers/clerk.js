@@ -54,7 +54,10 @@ const clerkWebhooks = async (req, res) => {
                     }
                     await prisma.user.update({
                         where: { id: clerkUserId },
-                        data: { credits: { increment: credits[planId] } },
+                        data: {
+                            credits: { increment: credits[planId] },
+                            plan: planId
+                        },
                     });
                     console.log("✅ Credits updated!");
                 }
